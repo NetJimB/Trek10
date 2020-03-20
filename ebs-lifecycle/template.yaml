@@ -1,0 +1,44 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  ebs-lifecycle
+
+  EBS backups for GovCloud
+
+Globals:
+  Function:
+    CodeUri: app
+    Runtime: python3.7
+    Environment:
+      Variables:
+        LOG_LEVEL: INFO
+    Timeout: 5
+
+Resources:
+  AmiBackup:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: ami_backup.lambda_handle
+      Policies:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  DeleteSnapshot:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: delete_snapshot.lambda_handle
+      Policies:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  TagCopy:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: tag_copy.lambda_handle
+      Policies:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  Snapshot:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: snapshot.lambda_handle
+      Policies:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
