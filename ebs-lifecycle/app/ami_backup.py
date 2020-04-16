@@ -96,8 +96,9 @@ def get_instances(ec2):
         Filters=[{"Name": "tag:BackupAmi", "Values": ["True"]}]
     )
     for response in response_iterator:
-        for instance in response["Reservations"]["Instances"]:
-            instances.append(instance)
+        for reservations in response["Reservations"]:
+            for instance in reservations["Instances"]:
+                instances.append(instance)
 
     return instances
 
