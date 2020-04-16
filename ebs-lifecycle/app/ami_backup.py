@@ -45,7 +45,7 @@ def tag_instances(ec2, to_tag, create_time):
         for instance in instances:
             name = f"{instance['name']} - {create_time.strftime('%Y-%m-%d_%a')}"
             ec2.create_tags(
-                Resources=[instance["AMIid"]],
+                Resources=[instance["ami_id"]],
                 Tags=[
                     {"Key": "DeleteOn", "Value": delete_fmt},
                     {"Key": "Name", "Value": name},
