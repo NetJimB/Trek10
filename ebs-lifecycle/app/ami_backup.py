@@ -17,6 +17,7 @@
 import collections
 import datetime
 import pprint
+import time
 
 import boto3
 
@@ -33,10 +34,15 @@ def lambda_handler(_event, _context):
     to_tag = get_to_tag(ec2, instances, create_time)
     print(to_tag.keys())
 
+    time.sleep(30) # wait for snapshots to be created
+
     tag_instances(ec2, to_tag, create_time)
 
 
 def tag_instances(ec2, to_tag, create_time):
+    image_ids = [i["ami_id"] for ins in to_tag.values() for i in ins]
+    images_details = ec2.describe_images(ImageIds=image_ids)['Images']
+
     for retention_days, instances in to_tag.items():
         delete_date = datetime.date.today() + datetime.timedelta(days=int(retention_days))
         delete_fmt = delete_date.strftime("%m-%d-%Y")
@@ -45,10 +51,8 @@ def tag_instances(ec2, to_tag, create_time):
         for instance in instances:
             name = f"{instance['name']} - {create_time.strftime('%Y-%m-%d_%a')}"
 
-            image = ec2.describe_image_attribute(
-                Attribute='blockDeviceMapping', ImageId=instance["ami_id"]
-            )
-            resources = [device["Ebs"]["SnapshotId"] for device in image['BlockDeviceMappings']]
+            image_details = [i for i in images_details if i["ImageId"] == instance["ami_id"]][0]
+            resources = [device["Ebs"]["SnapshotId"] for device in image_details['BlockDeviceMappings']]
             resources.append(instance["ami_id"])
 
             ec2.create_tags(
@@ -62,6 +66,7 @@ def tag_instances(ec2, to_tag, create_time):
 
 def get_to_tag(ec2, instances, create_time):
     to_tag = collections.defaultdict(list)
+
     for instance in instances:
         retention_tag = find_tag(instance["Tags"], "Retention")
 
@@ -98,11 +103,12 @@ def get_to_tag(ec2, instances, create_time):
     return to_tag
 
 
+
 def get_instances(ec2):
     instances = []
     paginator = ec2.get_paginator("describe_instances")
     response_iterator = paginator.paginate(
-        Filters=[{"Name": "tag:BackupAmi", "Values": ["True"]}]
+        # Filters=[{"Name": "tag:BackupAmi", "Values": ["True"]}]
     )
     for response in response_iterator:
         for reservations in response["Reservations"]:
