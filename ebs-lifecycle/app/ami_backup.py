@@ -56,9 +56,11 @@ def tag_instances(ec2, to_tag, create_time):
 def get_to_tag(ec2, instances, create_time):
     to_tag = collections.defaultdict(list)
     for instance in instances:
-        retention_days = find_tag(instance["Tags"], "Retention")
+        retention_tag = find_tag(instance["Tags"], "Retention")
 
-        if retention_days is None:
+        if retention_tag:
+            retention_days = int(retention_tag)
+        else:
             retention_days = 7
 
         instance_name = find_tag(instance["Tags"], "Name")
