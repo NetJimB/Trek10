@@ -38,7 +38,7 @@ def lambda_handler(_event, _context):
 
 def tag_instances(ec2, to_tag, create_time):
     for retention_days, instances in to_tag.items():
-        delete_date = datetime.date.today() + datetime.timedelta(days=retention_days)
+        delete_date = datetime.date.today() + datetime.timedelta(days=int(retention_days))
         delete_fmt = delete_date.strftime("%m-%d-%Y")
         print("Will delete {} AMIs on {}".format(len(instances), delete_fmt))
 
