@@ -44,8 +44,15 @@ def tag_instances(ec2, to_tag, create_time):
 
         for instance in instances:
             name = f"{instance['name']} - {create_time.strftime('%Y-%m-%d_%a')}"
+
+            image = ec2.describe_image_attribute(
+                Attribute='blockDeviceMapping', ImageId=instance["ami_id"]
+            )
+            resources = [device["Ebs"]["SnapshotId"] for device in image['BlockDeviceMappings']]
+            resources.append(instance["ami_id"])
+
             ec2.create_tags(
-                Resources=[instance["ami_id"]],
+                Resources=resources,
                 Tags=[
                     {"Key": "DeleteOn", "Value": delete_fmt},
                     {"Key": "Name", "Value": name},
