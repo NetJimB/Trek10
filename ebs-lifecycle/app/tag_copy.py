@@ -5,6 +5,7 @@
 # EC2-Tag-Assets-LambdaV1.1.py
 # last update 20170927jb
 from __future__ import print_function
+
 import logging
 
 import boto3
