@@ -1,0 +1,559 @@
+{
+"AWSTemplateFormatVersion": "2010-09-09",
+"Description": "template SacVpcTemplateV1.3 - CloudFormation template for network to support a 3-tier app in 3 AZs",
+"Parameters": {
+    "KeyName": {
+        "Description": "Name of an EC2 KeyPair to enable SSH access to the instance.",
+        "Type": "AWS::EC2::KeyPair::KeyName",
+        "Default" : "sacda-aws-gc-201601",
+        "ConstraintDescription": "must be the name of an existing EC2 KeyPair."
+    },
+    "RegionName": {
+      "Description": "Region name",
+      "Default" : "us-gov-west-1",      
+      "Type": "String"
+    },
+    "VpcCidrPrefix": {
+        "Description": "Virtual private cloud CIDR prefix (e.g. 10.241); used to build a /16 network for the VPC (e.g. 10.241.0.0/16)",
+        "Type": "String",
+        "Default" : "10.241"
+        }
+    },
+    "Resources": {
+        "VPC": {
+        "Type": "AWS::EC2::VPC",
+        "Properties": {
+            "CidrBlock": {
+            "Fn::Join": [
+                "",
+                [
+                {
+                    "Ref": "VpcCidrPrefix"
+                },
+                ".0.0/16"
+                ]
+            ]
+            },
+            "EnableDnsSupport": true,
+            "EnableDnsHostnames": true
+        }
+        },
+    "SubnetAppA": {
+    "Type": "AWS::EC2::Subnet",
+    "Properties": {
+        "VpcId": {
+        "Ref": "VPC"
+        },
+        "CidrBlock": {
+        "Fn::Join": [
+            "",
+            [
+            {
+                "Ref": "VpcCidrPrefix"
+            },
+            ".0.0/18"
+            ]
+        ]
+        },
+        "AvailabilityZone": {
+          "Fn::Join": [
+            "",
+            [
+              {
+                "Ref": "RegionName"
+              },
+              "a"
+            ]
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "App subnet availability zone A"
+          }
+        ]
+      }
+    },
+    "SubnetAppB": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "CidrBlock": {
+          "Fn::Join": [
+            "",
+            [
+              {
+                "Ref": "VpcCidrPrefix"
+              },
+              ".64.0/18"
+            ]
+          ]
+        },
+        "AvailabilityZone": {
+          "Fn::Join": [
+            "",
+            [
+              {
+                "Ref": "RegionName"
+              },
+              "b"
+            ]
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "App subnet availability zone B"
+          }
+        ]
+      }
+    },
+    "SubnetAppC": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "CidrBlock": {
+          "Fn::Join": [
+            "",
+            [
+              {
+                "Ref": "VpcCidrPrefix"
+              },
+              ".128.0/18"
+            ]
+          ]
+        },
+        "AvailabilityZone": {
+          "Fn::Join": [
+            "",
+            [
+              {
+                "Ref": "RegionName"
+              },
+              "c"
+            ]
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "App subnet availability zone C"
+          }
+        ]
+      }
+    },
+    "SubnetDatabaseA": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "CidrBlock": {
+          "Fn::Join": [
+            "",
+            [
+              {
+                "Ref": "VpcCidrPrefix"
+              },
+              ".192.0/24"
+            ]
+          ]
+        },
+        "AvailabilityZone": {
+          "Fn::Join": [
+            "",
+            [
+              {
+                "Ref": "RegionName"
+              },
+              "a"
+            ]
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "Database subnet availability zone A"
+          }
+        ]
+      }
+    },
+    "SubnetDatabaseB": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "CidrBlock": {
+          "Fn::Join": [
+            "",
+            [
+              {
+                "Ref": "VpcCidrPrefix"
+              },
+              ".193.0/24"
+            ]
+          ]
+        },
+        "AvailabilityZone": {
+          "Fn::Join": [
+            "",
+            [
+              {
+                "Ref": "RegionName"
+              },
+              "b"
+            ]
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "Database subnet availability zone B"
+          }
+        ]
+      }
+    },
+    "SubnetDatabaseC": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "CidrBlock": {
+          "Fn::Join": [
+            "",
+            [
+              {
+                "Ref": "VpcCidrPrefix"
+              },
+              ".194.0/24"
+            ]
+          ]
+        },
+        "AvailabilityZone": {
+          "Fn::Join": [
+            "",
+            [
+              {
+                "Ref": "RegionName"
+              },
+              "c"
+            ]
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "Database subnet availability zone C"
+          }
+        ]
+      }
+    },
+    "SubnetDmzA": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "MapPublicIpOnLaunch": "true",
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "CidrBlock": {
+          "Fn::Join": [
+            "",
+            [
+              {
+                "Ref": "VpcCidrPrefix"
+              },
+              ".195.0/24"
+            ]
+          ]
+        },
+        "AvailabilityZone": {
+          "Fn::Join": [
+            "",
+            [
+              {
+                "Ref": "RegionName"
+              },
+              "a"
+            ]
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "DMZ subnet availability zone A"
+          }
+        ]
+      }
+    },
+    "SubnetDmzB": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "MapPublicIpOnLaunch": "true",
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "CidrBlock": {
+          "Fn::Join": [
+            "",
+            [
+              {
+                "Ref": "VpcCidrPrefix"
+              },
+              ".196.0/24"
+            ]
+          ]
+        },
+        "AvailabilityZone": {
+          "Fn::Join": [
+            "",
+            [
+              {
+                "Ref": "RegionName"
+              },
+              "b"
+            ]
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "DMZ subnet availability zone B"
+          }
+        ]
+      }
+    },
+    "SubnetDmzC": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "MapPublicIpOnLaunch": "true",
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "CidrBlock": {
+          "Fn::Join": [
+            "",
+            [
+              {
+                "Ref": "VpcCidrPrefix"
+              },
+              ".197.0/24"
+            ]
+          ]
+        },
+        "AvailabilityZone": {
+          "Fn::Join": [
+            "",
+            [
+              {
+                "Ref": "RegionName"
+              },
+              "c"
+            ]
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "DMZ subnet availability zone C"
+          }
+        ]
+      }
+    },
+    "InternetGateway": {
+      "Type": "AWS::EC2::InternetGateway"
+    },
+    "AttachGateway": {
+      "Type": "AWS::EC2::VPCGatewayAttachment",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "InternetGatewayId": {
+          "Ref": "InternetGateway"
+        }
+      }
+    },
+    "NatGateway": {
+      "DependsOn": "AttachGateway",
+      "Type": "AWS::EC2::NatGateway",
+      "Properties": {
+        "AllocationId": {
+          "Fn::GetAtt": [
+            "NatGatewayEip",
+            "AllocationId"
+          ]
+        },
+        "SubnetId": {
+          "Ref": "SubnetDmzA"
+        }
+      }
+    },
+    "NatGatewayEip": {
+      "Type": "AWS::EC2::EIP",
+      "Properties": {
+        "Domain": "VPC"
+      }
+    },
+    "PubRouteTable": {
+      "Type": "AWS::EC2::RouteTable",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "Public Route Table"
+          }
+        ]
+      }
+    },
+    "PrivRouteTable": {
+      "Type": "AWS::EC2::RouteTable",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "Private Route Table"
+          }
+        ]
+      }
+    },
+    "DefaultRoute": {
+      "Type": "AWS::EC2::Route",
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "PubRouteTable"
+        },
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "GatewayId": {
+          "Ref": "InternetGateway"
+        }
+      }
+    },
+    "NatGwDefaultRoute": {
+      "Type": "AWS::EC2::Route",
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "PrivRouteTable"
+        },
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "NatGatewayId": {
+          "Ref": "NatGateway"
+        }
+      }
+    },
+    "RouteTableAssociationAppA": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "SubnetId": {
+          "Ref": "SubnetAppA"
+        },
+        "RouteTableId": {
+          "Ref": "PrivRouteTable"
+        }
+      }
+    },
+    "RouteTableAssociationAppB": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "SubnetId": {
+          "Ref": "SubnetAppB"
+        },
+        "RouteTableId": {
+          "Ref": "PrivRouteTable"
+        }
+      }
+    },
+    "RouteTableAssociationAppC": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "SubnetId": {
+          "Ref": "SubnetAppC"
+        },
+        "RouteTableId": {
+          "Ref": "PrivRouteTable"
+        }
+      }
+    },
+    "RouteTableAssociationDatabaseA": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "SubnetId": {
+          "Ref": "SubnetDatabaseA"
+        },
+        "RouteTableId": {
+          "Ref": "PrivRouteTable"
+        }
+      }
+    },
+    "RouteTableAssociationDatabaseB": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "SubnetId": {
+          "Ref": "SubnetDatabaseB"
+        },
+        "RouteTableId": {
+          "Ref": "PrivRouteTable"
+        }
+      }
+    },
+    "RouteTableAssociationDatabaseC": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "SubnetId": {
+          "Ref": "SubnetDatabaseC"
+        },
+        "RouteTableId": {
+          "Ref": "PrivRouteTable"
+        }
+      }
+    },
+    "RouteTableAssociationDmzA": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "SubnetId": {
+          "Ref": "SubnetDmzA"
+        },
+        "RouteTableId": {
+          "Ref": "PubRouteTable"
+        }
+      }
+    },
+    "RouteTableAssociationDmzB": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "SubnetId": {
+          "Ref": "SubnetDmzB"
+        },
+        "RouteTableId": {
+          "Ref": "PubRouteTable"
+        }
+      }
+    },
+    "RouteTableAssociationDmzC": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "SubnetId": {
+          "Ref": "SubnetDmzC"
+        },
+        "RouteTableId": {
+          "Ref": "PubRouteTable"
+        }
+      }
+    }
+  },
+  "Outputs": {
+      "MyRegion" : { "Value" : { "Ref" : "AWS::Region" } },
+      "AvailabilityZone" : {  "Value" : {"Ref" : "AWS::Region"} }
+  }
+}
