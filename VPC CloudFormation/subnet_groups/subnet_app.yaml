@@ -1,0 +1,100 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: template SacVpcTemplateV1.5.0 - CloudFormation template for network to support a 5-tier app in 3 AZs
+Parameters:
+  RegionName:
+    Description: Region name
+    Default: us-gov-west-1
+    Type: String
+  VpcCidrPrefix:
+    Description: Virtual private cloud CIDR prefix (e.g. 10.241); used to build a /16 network for the VPC (e.g. 10.241.0.0/16)
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /vpc/cidr/prefix
+  VpcId:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /vpc/id
+
+Resources:
+  SubnetA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: VpcId
+      CidrBlock: !Sub ${VpcCidrPrefix}.0.0/18
+      AvailabilityZone: !Sub ${RegionName}a
+      Tags:
+        - Key: Name
+          Value: App-Az-A
+
+  SubnetB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: VpcId
+      CidrBlock: !Sub ${VpcCidrPrefix}.64.0/18
+      AvailabilityZone: !Sub ${RegionName}b
+      Tags:
+        - Key: Name
+          Value: App-Az-B
+
+  SubnetC:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: VpcId
+      CidrBlock: !Sub ${VpcCidrPrefix}.128.0/18
+      AvailabilityZone: !Sub ${RegionName}c
+      Tags:
+        - Key: Name
+          Value: App-Az-C
+
+  NetworkAcl:
+    Type: AWS::EC2::NetworkAcl
+    Properties:
+      VpcId: !Ref VpcId
+      Tags:
+        - Key: Name
+          Value: App Subnet
+
+  NetAclEntrySubnetA:
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties:
+      NetworkAclId: !Ref NetworkAcl
+      SubnetId: !Ref SubnetA
+
+  NetAclEntrySubnetB:
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties:
+      NetworkAclId: !Ref NetworkAcl
+      SubnetId: !Ref SubnetB
+
+  NetAclEntrySubnetC:
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties:
+      NetworkAclId: !Ref NetworkAcl
+      SubnetId: !Ref SubnetC
+
+  RouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VpcId
+      Tags:
+        - Key: Name
+          Value: App Subnet
+
+  RouteSubnetA:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref RouteTable
+      SubnetId: !Ref SubnetA
+
+  RouteSubnetB:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref RouteTable
+      SubnetId: !Ref SubnetB
+
+  RouteSubnetC:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref RouteTable
+      SubnetId: !Ref SubnetC

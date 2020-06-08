@@ -1,0 +1,32 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: template SacVpcTemplateV1.5.0 - CloudFormation template for network to support a 5-tier app in 3 AZs
+Parameters:
+  VpcCidrPrefix:
+    Description: Virtual private cloud CIDR prefix (e.g. 10.241); used to build a /16 network for the VPC (e.g. 10.241.0.0/16)
+    Type: String
+    Default: "10.241"
+
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Sub ${VpcCidrPrefix}.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: !Ref AWS::StackName
+
+  VpcIdParam:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Type: String
+      Value: !Ref VPC
+      Name: /vpc/id
+
+  VpcCidrPrefixParam:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Type: String
+      Value: !Ref VpcCidrPrefix
+      Name: /vpc/cidr/prefix
