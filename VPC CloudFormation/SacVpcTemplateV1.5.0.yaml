@@ -1,0 +1,645 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: template SacVpcTemplateV1.5.0 - CloudFormation template for network to support a 5-tier app in 3 AZs
+Parameters:
+  # KeyName:
+  #     Description: Name of an EC2 KeyPair to enable SSH access to the instance.
+  #     Type: "AWS::EC2::KeyPair::KeyName"
+  #     ConstraintDescription: must be the name of an existing EC2 KeyPair.
+  RegionName:
+    Description: Region name
+    Default: us-gov-west-1
+    Type: String
+  VpcCidrPrefix:
+    Description: Virtual private cloud CIDR prefix (e.g. 10.241); used to build a /16 network for the VPC (e.g. 10.241.0.0/16)
+    Type: String
+    Default: "10.241"
+
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock:
+        Fn::Join:
+          - ""
+          - - Ref: VpcCidrPrefix
+            - .0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value:
+            Ref: AWS::StackName
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value:
+            Ref: AWS::StackName
+
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId:
+        Ref: VPC
+      InternetGatewayId:
+        Ref: InternetGateway
+
+  SubnetAppA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: VPC
+      CidrBlock:
+        Fn::Join:
+          - ""
+          - - Ref: VpcCidrPrefix
+            - .0.0/18
+      AvailabilityZone:
+        Fn::Join:
+          - ""
+          - - Ref: RegionName
+            - a
+      Tags:
+        - Key: Name
+          Value: App-Az-A
+
+  SubnetAppB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: VPC
+      CidrBlock:
+        Fn::Join:
+          - ""
+          - - Ref: VpcCidrPrefix
+            - .64.0/18
+      AvailabilityZone:
+        Fn::Join:
+          - ""
+          - - Ref: RegionName
+            - b
+      Tags:
+        - Key: Name
+          Value: App-Az-B
+
+  SubnetAppC:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: VPC
+      CidrBlock:
+        Fn::Join:
+          - ""
+          - - Ref: VpcCidrPrefix
+            - .128.0/18
+      AvailabilityZone:
+        Fn::Join:
+          - ""
+          - - Ref: RegionName
+            - c
+      Tags:
+        - Key: Name
+          Value: App-Az-C
+
+  SubnetDatabaseA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: VPC
+      CidrBlock:
+        Fn::Join:
+          - ""
+          - - Ref: VpcCidrPrefix
+            - .192.0/24
+      AvailabilityZone:
+        Fn::Join:
+          - ""
+          - - Ref: RegionName
+            - a
+      Tags:
+        - Key: Name
+          Value: Db-Az-A
+
+  SubnetDatabaseB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: VPC
+      CidrBlock:
+        Fn::Join:
+          - ""
+          - - Ref: VpcCidrPrefix
+            - .193.0/24
+      AvailabilityZone:
+        Fn::Join:
+          - ""
+          - - Ref: RegionName
+            - b
+      Tags:
+        - Key: Name
+          Value: Db-Az-B
+
+  SubnetDatabaseC:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: VPC
+      CidrBlock:
+        Fn::Join:
+          - ""
+          - - Ref: VpcCidrPrefix
+            - .194.0/24
+      AvailabilityZone:
+        Fn::Join:
+          - ""
+          - - Ref: RegionName
+            - c
+      Tags:
+        - Key: Name
+          Value: Db-Az-C
+
+  SubnetFeIntA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: VPC
+      CidrBlock:
+        Fn::Join:
+          - ""
+          - - Ref: VpcCidrPrefix
+            - .198.0/24
+      AvailabilityZone:
+        Fn::Join:
+          - ""
+          - - Ref: RegionName
+            - a
+      Tags:
+        - Key: Name
+          Value: FE-Int-AZ-A
+
+  SubnetFeIntB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: VPC
+      CidrBlock:
+        Fn::Join:
+          - ""
+          - - Ref: VpcCidrPrefix
+            - .199.0/24
+      AvailabilityZone:
+        Fn::Join:
+          - ""
+          - - Ref: RegionName
+            - b
+      Tags:
+        - Key: Name
+          Value: FE-Int-AZ-B
+
+  SubnetFeIntC:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: VPC
+      CidrBlock:
+        Fn::Join:
+          - ""
+          - - Ref: VpcCidrPrefix
+            - .200.0/24
+      AvailabilityZone:
+        Fn::Join:
+          - ""
+          - - Ref: RegionName
+            - c
+      Tags:
+        - Key: Name
+          Value: FE-Int-AZ-C
+
+  SubnetFeExtA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      MapPublicIpOnLaunch: true
+      VpcId:
+        Ref: VPC
+      CidrBlock:
+        Fn::Join:
+          - ""
+          - - Ref: VpcCidrPrefix
+            - .195.0/24
+      AvailabilityZone:
+        Fn::Join:
+          - ""
+          - - Ref: RegionName
+            - a
+      Tags:
+        - Key: Name
+          Value: Fe-Ext-Az-A
+
+  SubnetFeExtB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      MapPublicIpOnLaunch: true
+      VpcId:
+        Ref: VPC
+      CidrBlock:
+        Fn::Join:
+          - ""
+          - - Ref: VpcCidrPrefix
+            - .196.0/24
+      AvailabilityZone:
+        Fn::Join:
+          - ""
+          - - Ref: RegionName
+            - b
+      Tags:
+        - Key: Name
+          Value: Fe-Ext-Az-B
+
+  SubnetFeExtC:
+    Type: AWS::EC2::Subnet
+    Properties:
+      MapPublicIpOnLaunch: true
+      VpcId:
+        Ref: VPC
+      CidrBlock:
+        Fn::Join:
+          - ""
+          - - Ref: VpcCidrPrefix
+            - .197.0/24
+      AvailabilityZone:
+        Fn::Join:
+          - ""
+          - - Ref: RegionName
+            - c
+      Tags:
+        - Key: Name
+          Value: Fe-Ext-Az-C
+
+  SubnetSvcA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      MapPublicIpOnLaunch: true
+      VpcId:
+        Ref: VPC
+      CidrBlock:
+        Fn::Join:
+          - ""
+          - - Ref: VpcCidrPrefix
+            - .204.0/22
+      AvailabilityZone:
+        Fn::Join:
+          - ""
+          - - Ref: RegionName
+            - a
+      Tags:
+        - Key: Name
+          Value: Svc-Az-A
+
+  SubnetSvcB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      MapPublicIpOnLaunch: true
+      VpcId:
+        Ref: VPC
+      CidrBlock:
+        Fn::Join:
+          - ""
+          - - Ref: VpcCidrPrefix
+            - .208.0/22
+      AvailabilityZone:
+        Fn::Join:
+          - ""
+          - - Ref: RegionName
+            - b
+      Tags:
+        - Key: Name
+          Value: Svc-Az-B
+
+  SubnetSvcC:
+    Type: AWS::EC2::Subnet
+    Properties:
+      MapPublicIpOnLaunch: true
+      VpcId:
+        Ref: VPC
+      CidrBlock:
+        Fn::Join:
+          - ""
+          - - Ref: VpcCidrPrefix
+            - .212.0/22
+      AvailabilityZone:
+        Fn::Join:
+          - ""
+          - - Ref: RegionName
+            - c
+      Tags:
+        - Key: Name
+          Value: Svc-Az-C
+
+  NatGateway:
+    DependsOn: AttachGateway
+    Type: "AWS::EC2::NatGateway"
+    Properties:
+      AllocationId:
+        "Fn::GetAtt":
+          - NatGatewayEip
+          - AllocationId
+      SubnetId:
+        Ref: SubnetFeExtA
+      Tags:
+        - Key: Name
+          Value:
+            Ref: AWS::StackName
+
+  NatGatewayEip:
+    Type: "AWS::EC2::EIP"
+    Properties:
+      Domain: vpc
+
+  RouteTableAppA:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: VPC
+      Tags:
+        - Key: Name
+          Value: App-A Route Table
+
+  RouteTableAppB:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: VPC
+      Tags:
+        - Key: Name
+          Value: App-B Route Table
+
+  RouteTableAppC:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: VPC
+      Tags:
+        - Key: Name
+          Value: App-C Route Table
+
+  RouteTableFeExtA:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: VPC
+      Tags:
+        - Key: Name
+          Value: FE-Ext-A Route Table
+
+  RouteTableFeExtB:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: VPC
+      Tags:
+        - Key: Name
+          Value: FE-Ext-B Route Table
+
+  RouteTableFeExtC:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: VPC
+      Tags:
+        - Key: Name
+          Value: FE-Ext-C Route Table
+
+  RouteTableFeIntA:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: VPC
+      Tags:
+        - Key: Name
+          Value: FE-Int-A Route Table
+
+  RouteTableFeIntB:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: VPC
+      Tags:
+        - Key: Name
+          Value: FE-Int-B Route Table
+
+  RouteTableFeIntC:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: VPC
+      Tags:
+        - Key: Name
+          Value: FE-Int-C Route Table
+
+  RouteTableSvsA:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: VPC
+      Tags:
+        - Key: Name
+          Value: Svs-A Route Table
+
+  RouteTableSvsB:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: VPC
+      Tags:
+        - Key: Name
+          Value: Svs-B Route Table
+
+  RouteTableSvsC:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: VPC
+      Tags:
+        - Key: Name
+          Value: Svs-C Route Table
+
+  PrivRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: VPC
+      Tags:
+        - Key: Name
+          Value: Private Route Table
+
+  RouteTableDataBaseA:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: VPC
+      Tags:
+        - Key: Name
+          Value: Db-Az-A Route Table
+
+  RouteTableDataBaseB:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: VPC
+      Tags:
+        - Key: Name
+          Value: Db-Az-B Route Table
+
+  RouteTableDataBaseC:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: VPC
+      Tags:
+        - Key: Name
+          Value: Db-Az-C Route Table
+
+  DefaultRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId:
+        Ref: RouteTableFeExtA
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId:
+        Ref: InternetGateway
+
+  NatGwDefaultRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId:
+        Ref: PrivRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId:
+        Ref: NatGateway
+
+  RouteTableAssociationAppA:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: SubnetAppA
+      RouteTableId:
+        Ref: RouteTableAppA
+
+  RouteTableAssociationAppB:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: SubnetAppB
+      RouteTableId:
+        Ref: RouteTableAppB
+
+  RouteTableAssociationAppC:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: SubnetAppC
+      RouteTableId:
+        Ref: RouteTableAppC
+
+  RouteTableAssociationFeIntA:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: SubnetFeIntA
+      RouteTableId:
+        Ref: RouteTableFeIntA
+
+  RouteTableAssociationFeIntB:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: SubnetFeIntB
+      RouteTableId:
+        Ref: RouteTableFeIntB
+
+  RouteTableAssociationFeIntC:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: SubnetFeIntC
+      RouteTableId:
+        Ref: RouteTableFeIntC
+
+  RouteTableAssociationDatabaseA:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties:
+      SubnetId:
+        Ref: SubnetDatabaseA
+      RouteTableId:
+        Ref: RouteTableDataBaseA
+
+  RouteTableAssociationDatabaseB:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: SubnetDatabaseB
+      RouteTableId:
+        Ref: RouteTableDataBaseB
+
+  RouteTableAssociationDatabaseC:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: SubnetDatabaseC
+      RouteTableId:
+        Ref: RouteTableDataBaseC
+
+  RouteTableAssociationFeExtA:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: SubnetFeExtA
+      RouteTableId:
+        Ref: RouteTableFeExtA
+
+  RouteTableAssociationFeExtB:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: SubnetFeExtB
+      RouteTableId:
+        Ref: RouteTableFeExtB
+
+  RouteTableAssociationFeExtC:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: SubnetFeExtC
+      RouteTableId:
+        Ref: RouteTableFeExtC
+
+  RouteTableAssociationSvcA:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: SubnetSvcA
+      RouteTableId:
+        Ref: RouteTableSvsA
+
+  RouteTableAssociationSvcB:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: SubnetSvcB
+      RouteTableId:
+        Ref: RouteTableSvsB
+
+  RouteTableAssociationSvcC:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: SubnetSvcC
+      RouteTableId:
+        Ref: RouteTableSvsC
+
+Outputs:
+  Region:
+    Value:
+      Ref: AWS::Region
