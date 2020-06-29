@@ -1,0 +1,65 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::Serverless-2016-10-31
+
+# https://docs.aws.amazon.com/waf/latest/developerguide/limits.html
+# Does the default quota matter?
+
+Resources:
+  MSIsacWaf:
+    Type: AWS::WAFv2::WebACL
+    Properties:
+      DefaultAction:
+        Block: {}
+      Description: MS-ISAC
+      Scope: REGIONAL
+      VisibilityConfig:  # Should this be enabled?
+          CloudWatchMetricsEnabled: false
+          MetricName: MS-ISAC
+          SampledRequestsEnabled: false
+
+  WafRulesBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "waf-rules-${AWS::StackName}-${AWS::Region}-${AWS::AccountId}"
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+
+  WafUpdater:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: app/waf_update.lambda_handler
+      Environment:
+        Variables:
+          WAF_REF: !Ref MSIsacWaf
+      Runtime: python3.7
+      Events:
+        UpdateOnChange:
+          Type: S3
+          Properties:
+            Bucket: !Ref WafRulesBucket
+            Events:
+              - s3:ObjectCreated:*
+              - s3:ObjectRemoved:*
+              - s3:ObjectRestore:Completed
+      Policies:
+        - S3ReadPolicy:
+            BucketName: !Sub "waf-rules-${AWS::StackName}-${AWS::Region}-${AWS::AccountId}"
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - wafv2:CreateIPSet
+                - wafv2:DeleteIPSet
+                - wafv2:GetIPSet
+                - wafv2:ListIPSets
+                - wafv2:UpdateIPSet
+              Resource: "*" # Tighten up later https://docs.aws.amazon.com/waf/latest/developerguide/waf-api-permissions-ref.html
+      Timeout: 5
+
+Outputs:
+  MSIsacWafPhysicalId:
+    Value: !Ref MSIsacWaf
+  RulesBucket:
+    Value: !Ref WafRulesBucket
